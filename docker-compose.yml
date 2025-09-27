@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: uni-portal-api
+    ports:
+      - "8079:8079"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=5434
+      - DB_USER=arman
+      - DB_PASSWORD=tinder
+      - DB_NAME=tinder
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  db:
+    image: postgres:15
+    container_name: tinder_db
+    environment:
+      POSTGRES_USER: arman
+      POSTGRES_PASSWORD: tinder
+      POSTGRES_DB: tinder
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
