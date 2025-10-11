@@ -23,11 +23,13 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
+
 	var user models.User
-	if err := db.DB.First(&user, uid).Error; err != nil {
+	if err := db.DB.Preload("Role").First(&user, uid).Error; err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
 	user.Password = ""
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)

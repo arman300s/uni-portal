@@ -8,6 +8,7 @@ import (
 	"github.com/arman300s/uni-portal/internal/models"
 	"github.com/arman300s/uni-portal/pkg/auth"
 	"github.com/arman300s/uni-portal/pkg/db"
+	"gorm.io/gorm"
 )
 
 type signupReq struct {
@@ -42,29 +43,39 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var existingUser models.User
-	if err := db.DB.Where("email = ?", req.Email).First(&existingUser).Error; err != nil {
-		http.Error(w, "Email already in use", http.StatusNotFound)
+	// ✅ Check if user already exists
+	var userExists models.User
+	if err := db.DB.Where("email = ?", req.Email).First(&userExists).Error; err == nil {
+		http.Error(w, "Email already in use", http.StatusBadRequest)
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
 	}
+
 	hash, err := auth.HashPassword(req.Password)
 	if err != nil {
 		http.Error(w, "failed to hash", http.StatusBadRequest)
 		return
 	}
+
 	user := models.User{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: hash,
 	}
+
 	if err := db.DB.Create(&user).Error; err != nil {
 		http.Error(w, "failed to create user", http.StatusBadRequest)
 		return
 	}
+
 	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
 		http.Error(w, "failed to generate token", http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": token,

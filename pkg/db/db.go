@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,6 +15,10 @@ import (
 var DB *gorm.DB
 
 func Connect() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("⚠️  No .env file found, using system environment variables")
+	}
+
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	user := os.Getenv("DB_USER")

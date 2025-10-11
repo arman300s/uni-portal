@@ -10,7 +10,7 @@ services:
       - db
     environment:
       - DB_HOST=db
-      - DB_USER=5434
+      - DB_PORT=5432
       - DB_USER=arman
       - DB_PASSWORD=tinder
       - DB_NAME=tinder
