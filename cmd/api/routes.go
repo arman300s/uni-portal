@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/arman300s/uni-portal/internal/http/controllers"
 	"github.com/arman300s/uni-portal/pkg/middleware"
@@ -19,6 +20,9 @@ type RouteDeps struct {
 }
 
 func SetupRoutes(r *mux.Router, deps RouteDeps) {
+	// Swagger docs
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
 	// Public routes
 	r.HandleFunc("/signup", deps.Auth.Signup).Methods("POST")
 	r.HandleFunc("/login", deps.Auth.Login).Methods("POST")
