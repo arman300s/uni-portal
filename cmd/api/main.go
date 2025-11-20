@@ -17,6 +17,15 @@ import (
 )
 
 func main() {
+	// @title Uni Portal API
+	// @version 1.0
+	// @description API documentation for Uni Portal.
+	// @host localhost:8079
+
+	// @securityDefinitions.apikey ApiKeyAuth
+	// @in header
+	// @name Authorization
+
 	db.Connect()
 	if err := db.DB.AutoMigrate(&models.Role{}, &models.User{}, &models.Subject{}); err != nil {
 		log.Fatalf("failed to migrate: %v", err)
