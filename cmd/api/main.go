@@ -13,7 +13,9 @@ import (
 	"github.com/arman300s/uni-portal/internal/http/controllers"
 	"github.com/arman300s/uni-portal/internal/models"
 	"github.com/arman300s/uni-portal/internal/seeder"
+	"github.com/arman300s/uni-portal/pkg/cache"
 	"github.com/arman300s/uni-portal/pkg/db"
+	"github.com/arman300s/uni-portal/pkg/queue"
 )
 
 func main() {
@@ -27,6 +29,14 @@ func main() {
 	// @name Authorization
 
 	db.Connect()
+
+	if err := cache.Init(); err != nil {
+		log.Fatalf("failed to init redis: %v", err)
+	}
+
+	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+	queue.Init(redisAddr)
+
 	if err := db.DB.AutoMigrate(&models.Role{}, &models.User{}, &models.Subject{}); err != nil {
 		log.Fatalf("failed to migrate: %v", err)
 	}

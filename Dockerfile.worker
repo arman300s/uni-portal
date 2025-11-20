@@ -1,0 +1,37 @@
+# Stage 1: Build the Go worker binary
+FROM golang:1.24.4-alpine AS builder
+WORKDIR /app
+
+# Install git for Go modules
+RUN apk add --no-cache git
+
+# Copy go.mod and go.sum first to cache dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the project
+COPY . .
+
+# Build the worker binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o worker ./cmd/worker/main.go
+
+# Stage 2: Minimal image with the worker binary
+FROM alpine:3.18
+WORKDIR /app
+
+RUN apk add --no-cache bash
+
+# Copy the binary from builder
+COPY --from=builder /app/worker .
+
+# Optional: environment variables
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV DB_HOST=db
+ENV DB_PORT=5432
+ENV DB_USER=arman
+ENV DB_PASSWORD=tinder
+ENV DB_NAME=tinder
+
+# Run the worker binary
+CMD ["./worker"]

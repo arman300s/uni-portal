@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/arman300s/uni-portal/internal/core/repositories"
 	"github.com/arman300s/uni-portal/internal/models"
 	"github.com/arman300s/uni-portal/pkg/auth"
+	"github.com/arman300s/uni-portal/pkg/cache"
 )
 
 // UserService encapsulates admin/user flows.
@@ -35,15 +38,28 @@ func (s *UserService) GetCurrentUser(ctx context.Context, id uint) (*contracts.U
 }
 
 func (s *UserService) ListUsers(ctx context.Context) ([]contracts.UserDTO, error) {
+	cacheKey := "users:all"
+	cached, err := cache.RDB.Get(ctx, cacheKey).Bytes()
+	if err == nil {
+		var dtos []contracts.UserDTO
+		if json.Unmarshal(cached, &dtos) == nil {
+			return dtos, nil
+		}
+	}
+
 	users, err := s.users.List(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	dtos := make([]contracts.UserDTO, 0, len(users))
 	for _, u := range users {
-		dto := mapToUserDTO(&u)
-		dtos = append(dtos, *dto)
+		dtos = append(dtos, *mapToUserDTO(&u))
 	}
+
+	data, _ := json.Marshal(dtos)
+	cache.RDB.Set(ctx, cacheKey, data, 5*time.Minute)
+
 	return dtos, nil
 }
 

@@ -11,6 +11,8 @@ import (
 	"github.com/arman300s/uni-portal/internal/core/repositories"
 	"github.com/arman300s/uni-portal/internal/models"
 	"github.com/arman300s/uni-portal/pkg/auth"
+	"github.com/arman300s/uni-portal/pkg/queue"
+	"github.com/arman300s/uni-portal/pkg/tasks"
 )
 
 // AuthService coordinates signup/login flows.
@@ -56,6 +58,13 @@ func (s *AuthService) Signup(ctx context.Context, input contracts.SignupInput) (
 		return nil, err
 	}
 
+	payload := tasks.SendWelcomeEmailPayload{
+		UserID: user.ID,
+		Email:  user.Email,
+		Name:   user.Name,
+	}
+	_ = queue.Enqueue(tasks.TypeSendWelcomeEmail, payload, 0)
+
 	return &contracts.AuthResponse{Token: token, UserID: user.ID}, nil
 }
 
@@ -82,6 +91,13 @@ func (s *AuthService) Login(ctx context.Context, input contracts.LoginInput) (*c
 	if err != nil {
 		return nil, err
 	}
+
+	payload := tasks.SendWelcomeEmailPayload{
+		UserID: user.ID,
+		Email:  user.Email,
+		Name:   user.Name,
+	}
+	_ = queue.Enqueue(tasks.TypeSendWelcomeEmail, payload, 0)
 
 	return &contracts.AuthResponse{Token: token, UserID: user.ID}, nil
 }

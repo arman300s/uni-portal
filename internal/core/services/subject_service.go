@@ -2,15 +2,18 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 
 	"github.com/arman300s/uni-portal/internal/core/contracts"
 	"github.com/arman300s/uni-portal/internal/core/repositories"
 	"github.com/arman300s/uni-portal/internal/models"
+	"github.com/arman300s/uni-portal/pkg/cache"
 )
 
 // SubjectService manages subject-related logic.
@@ -49,7 +52,26 @@ func (s *SubjectService) CreateSubject(ctx context.Context, input contracts.Subj
 }
 
 func (s *SubjectService) ListSubjects(ctx context.Context) ([]models.Subject, error) {
-	return s.subjects.List(ctx)
+	cacheKey := "subjects:all"
+
+	cached, err := cache.RDB.Get(ctx, cacheKey).Bytes()
+	if err == nil {
+		var subjects []models.Subject
+		if json.Unmarshal(cached, &subjects) == nil {
+			return subjects, nil
+		}
+	}
+
+	subjects, err := s.subjects.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save to Redis
+	data, _ := json.Marshal(subjects)
+	cache.RDB.Set(ctx, cacheKey, data, 5*time.Minute)
+
+	return subjects, nil
 }
 
 func (s *SubjectService) GetSubject(ctx context.Context, id uint) (*models.Subject, error) {
