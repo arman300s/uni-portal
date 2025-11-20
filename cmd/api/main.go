@@ -8,6 +8,9 @@ import (
 	"github.com/gorilla/mux"
 
 	_ "github.com/arman300s/uni-portal/cmd/api/docs"
+	"github.com/arman300s/uni-portal/internal/core/repositories"
+	"github.com/arman300s/uni-portal/internal/core/services"
+	"github.com/arman300s/uni-portal/internal/http/controllers"
 	"github.com/arman300s/uni-portal/internal/models"
 	"github.com/arman300s/uni-portal/internal/seeder"
 	"github.com/arman300s/uni-portal/pkg/db"
@@ -23,8 +26,25 @@ func main() {
 	seeder.SeedAdmin(db.DB)
 	seeder.SeedTeachers(db.DB)
 	seeder.SeedSubjects(db.DB)
+
+	userRepo := repositories.NewUserRepository(db.DB)
+	roleRepo := repositories.NewRoleRepository(db.DB)
+	subjectRepo := repositories.NewSubjectRepository(db.DB)
+
+	authService := services.NewAuthService(userRepo, roleRepo)
+	userService := services.NewUserService(userRepo, roleRepo)
+	subjectService := services.NewSubjectService(subjectRepo, userRepo)
+
+	routeDeps := RouteDeps{
+		Auth:         controllers.NewAuthController(authService),
+		User:         controllers.NewUserController(userService),
+		AdminSubject: controllers.NewAdminSubjectController(subjectService),
+		Student:      controllers.NewStudentController(subjectService),
+		Teacher:      controllers.NewTeacherController(subjectService),
+	}
+
 	r := mux.NewRouter()
-	SetupRoutes(r)
+	SetupRoutes(r, routeDeps)
 
 	port := os.Getenv("PORT")
 	if port == "" {

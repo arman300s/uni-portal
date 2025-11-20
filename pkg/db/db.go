@@ -35,12 +35,12 @@ func Connect() {
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		log.Fatal("Failed to connect db: %v", err)
+		log.Fatalf("Failed to connect db: %v", err)
 	}
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		log.Fatal("Failed to get db instance: %v", err)
+		log.Fatalf("Failed to get db instance: %v", err)
 	}
 
 	sqlDB.SetMaxIdleConns(10)

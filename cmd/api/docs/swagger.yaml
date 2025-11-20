@@ -1,38 +1,388 @@
 definitions:
-  github_com_arman300s_uni-portal_internal_models.User:
+  contracts.AuthResponse:
     properties:
-      createdAt:
+      id:
+        type: integer
+      token:
         type: string
+    type: object
+  contracts.CreateUserInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  contracts.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  contracts.SignupInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  contracts.SubjectDTO:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      teachers:
+        items:
+          type: string
+        type: array
+    type: object
+  contracts.SubjectInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      teacher_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  contracts.UpdateUserInput:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+    type: object
+  contracts.UserDTO:
+    properties:
       email:
         type: string
       id:
         type: integer
       name:
         type: string
-      password:
-        type: string
-      updatedAt:
+      role:
         type: string
     type: object
-  internal_api.loginReq:
+  contracts.ValidationError:
     properties:
-      email:
+      field:
         type: string
-      password:
+      message:
         type: string
     type: object
-  internal_api.signupReq:
+  controllers.ErrorResponse:
     properties:
-      email:
-        type: string
-      name:
-        type: string
-      password:
+      details:
+        items:
+          $ref: '#/definitions/contracts.ValidationError'
+        type: array
+      error:
         type: string
     type: object
 info:
   contact: {}
 paths:
+  /admin/subjects:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List subjects
+      tags:
+      - admin-subjects
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subject payload
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.SubjectInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create subject
+      tags:
+      - admin-subjects
+  /admin/subjects/{id}:
+    delete:
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete subject
+      tags:
+      - admin-subjects
+    get:
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get subject
+      tags:
+      - admin-subjects
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Subject payload
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.SubjectInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update subject
+      tags:
+      - admin-subjects
+  /admin/users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/contracts.UserDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List users
+      tags:
+      - admin-users
+  /admin/users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - admin-users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/contracts.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user
+      tags:
+      - admin-users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.UpdateUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user role
+      tags:
+      - admin-users
+  /admin/users/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/contracts.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create user
+      tags:
+      - admin-users
   /login:
     post:
       consumes:
@@ -44,22 +394,23 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/internal_api.loginReq'
+          $ref: '#/definitions/contracts.LoginInput'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/contracts.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: User login
       tags:
       - auth
   /me:
@@ -71,15 +422,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_arman300s_uni-portal_internal_models.User'
+            $ref: '#/definitions/contracts.UserDTO'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
       security:
       - ApiKeyAuth: []
+      summary: Get current user
       tags:
       - auth
   /signup:
@@ -88,27 +438,72 @@ paths:
       - application/json
       description: Create a new user account
       parameters:
-      - description: User signup data
+      - description: Signup data
         in: body
-        name: user
+        name: signup
         required: true
         schema:
-          $ref: '#/definitions/internal_api.signupReq'
+          $ref: '#/definitions/contracts.SignupInput'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/contracts.AuthResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: User signup
       tags:
       - auth
+  /student/subjects:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/contracts.SubjectDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List subjects for students
+      tags:
+      - student-subjects
+  /teacher/subjects:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/contracts.SubjectDTO'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List teacher subjects
+      tags:
+      - teacher-subjects
 swagger: "2.0"
